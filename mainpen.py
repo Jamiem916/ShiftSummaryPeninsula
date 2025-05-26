@@ -211,7 +211,7 @@ def main():
                 st.write(f"**Fuel:** ${fe:.2f}")
                 st.write(f"**Car Wash:** ${carw:.2f}")
                 st.write(f"**Correct M7s:** ${correct_m7s:.2f}")
-                st.write(f"**Total(1):** ${total1:.2f}"
+                st.write(f"**Total(1):** ${total1:.2f}")
                 st.write(f"**Cash:** ${cash:.2f}")
                 st.write(f"**GROSS TAKINGS:** ${gross_takings:.2f}")
                 st.write(f"**Commission 45%:** ${less_comm45:.2f}")    
