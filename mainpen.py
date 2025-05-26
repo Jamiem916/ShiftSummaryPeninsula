@@ -98,7 +98,7 @@ def main():
 
     # Initialize session state
     keys = [
-        "fuel_expense", "live_eftpos", "net_amount", "tolls", "govt_levy",
+        "fuel_expense", "car_wash", "live_eftpos", "net_amount", "tolls", "govt_levy",
         "booking_fee", "tips", "rank_hail_jobs", "dispatched_jobs", "card",
         "cabcharge", "app_pay", "subsidy", "paper_ttss", "account", "off_meter_jobs",
     ]
@@ -108,7 +108,8 @@ def main():
 
     with st.form("shift_summary_form"):
         # Create all numeric inputs
-        fuel_expense = create_numeric_input("Fuel/Expenses/Carwash (ignore Fuel Card purchases)", "fuel_expense", 0.01)
+        fuel_expense = create_numeric_input("Fuel (ignore Fuel Card purchases)", "fuel_expense", 0.01)
+        car_wash = create_numeric_input("Car Wash", "car_wash", 0.01)
         live_eftpos = create_numeric_input("Live EFTPOS", "live_eftpos", 0.01)
         net_amount = create_numeric_input("Net Amount", "net_amount", 0.01)
         tolls = create_numeric_input("Tolls", "tolls", 0.01)
@@ -136,6 +137,7 @@ def main():
         if submitted:
             # Convert inputs safely
             fe = to_float_safe(fuel_expense)
+            carw = to_float_safe(car_wash)
             live_ep = to_float_safe(live_eftpos)
             net_amt = to_float_safe(net_amount)
             tolls_v = to_float_safe(tolls)
@@ -157,23 +159,21 @@ def main():
             # Calculations (example, adjust as needed)
             meter_totals = net_amt + tolls_v + govt_levy_v + booking_fee_v
             shift_totals = meter_totals + tips_v
+            eftpos = live_ep + card_v
             subtotal1 = card_v + cabcharge_v + app_pay_v
             subtotal2 = subtotal1 + subsidy_v
             txn_totals = subtotal2 + account_v
             ttss_subsidy = subsidy_v + paper_ttss_v
             sub_total = txn_totals + paper_ttss_v + fe + live_ep
             gross_total = meter_totals
+            correct_m7s = ttss_subsidy + account_v
+            cash = meter_totals - txn_totals - govt_levy_v
+            gross_takings = total1 + cash
             deduct_levy = (rank_hail + dispatched) * 1.32
-            total1 = gross_total - deduct_levy
-            less_comm45 = round(total1 * 0.45, 2)
-            total2 = total1 - less_comm45
-
-            total_pay_gst = total2 - sub_total
-            # Adjust total_to_driver logic as needed
-            if total_pay_gst < 0:
-                total_to_driver = total_pay_gst + abs(deduct_levy)
-            else:
-                total_to_driver = total_pay_gst - deduct_levy
+            total1 = fe + carw + eftpos + paper_ttss_v + account_v
+            less_comm45 = round(gross_takings * 0.45, 2)
+            total2 = gross_takings - less_comm45
+            total_pay_gst = total2 -total1 + govt_levy_v
 
                        # Display results using st.write()
             st.markdown("<h3 style='font-weight:bold; text-decoration:underline;'>Results</h3>", unsafe_allow_html=True)
@@ -208,48 +208,18 @@ def main():
 
             with c2:
                 st.markdown("<h4 style='font-weight:bold; text-decoration:underline;'>Pay-In</h4>", unsafe_allow_html=True)
-                st.write(f"**Fuel/Expense/Carwash:** ${fe:.2f}")
-                st.write(f"**Live EFTPOS:** ${live_ep:.2f}")
-                st.write(f"**Card:** ${subtotal2:.2f}")
-                st.write(f"**Cab Charge:** ${cabcharge_v:.2f}")
-                st.write(f"**App Pay:** ${app_pay_v:.2f}")
-                st.write(f"**Accounts / M7:** ${account_v:.2f}")
-                st.write(f"**TTSS Subsidy:** ${ttss_subsidy:.2f}")
-    
-                # First black box for Sub Total
-                st.markdown(f"""
-                <div style="
-                    border: 2px solid #ff0000;
-                    border-radius: 4px;
-                    padding: 6px;
-                    margin: 6px 0;
-                ">
-                    <strong>Sub Total:</strong> ${sub_total:.2f}
-                </div>
-                """, unsafe_allow_html=True)
-    
-                st.write(f"**Off Meter:** ${off_meter_v:.2f}")
-                st.write(f"**Gross Total:** ${gross_total:.2f}")
-                st.write(f"**Deduct Levy:** ${deduct_levy:.2f}")
-                st.write(f"**Total1:** ${total1:.2f}")
-                st.write(f"**Less Commission 45%:** ${less_comm45:.2f}")
-                st.write(f"**Total2:** ${total2:.2f}")
-    
-                # Second black box for Less Sub Total
-                st.markdown(f"""
-                <div style="
-                    border: 2px solid #ff0000;
-                    border-radius: 4px;
-                    padding: 6px;
-                    margin: 6px 0;
-                ">
-                    <strong>Less Sub Total:</strong> ${sub_total:.2f}
-                </div>
-                """, unsafe_allow_html=True)
-    
-                st.write(f"**Total Payin Inc. GST:** ${total_pay_gst:.2f}")
-                st.write(f"**Less Levy:** ${deduct_levy:.2f}")
-                st.write(f"**Total to Driver:** ${total_to_driver:.2f}")
+                st.write(f"**Fuel:** ${fe:.2f}")
+                st.write(f"**Car Wash:** ${carw:.2f}")
+                st.write(f"**Correct M7s:** ${correct_m7s:.2f}")
+                st.write(f"**Total(1):** ${total1:.2f}"
+                st.write(f"**Cash:** ${cash:.2f}")
+                st.write(f"**GROSS TAKINGS:** ${gross_takings:.2f}")
+                st.write(f"**Commission 45%:** ${less_comm45:.2f}")    
+                st.write(f"**Hire Charge 55%:** ${total2:.2f}")
+                st.write(f"**-Total(1):** ${gross_total:.2f}")
+                st.write(f"**+Levy:** ${govt_levy_v:.2f}")
+                st.write(f"**TOTAL CASH PAY-IN:** ${total_pay_gst:.2f}")
+                
 
 if __name__ == "__main__":
     main()
