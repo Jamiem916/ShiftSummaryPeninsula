@@ -170,8 +170,8 @@ def main():
             cash = meter_totals - txn_totals - govt_levy_v
             deduct_levy = (rank_hail + dispatched) * 1.32
             total1 = fe + carw + eftpos + paper_ttss_v + account_v
-            less_comm45 = round(gross_takings * 0.45, 2)
             gross_takings = total1 + cash
+            less_comm45 = round(gross_takings * 0.45, 2)
             total2 = gross_takings - less_comm45
             total_pay_gst = total2 -total1 + govt_levy_v
 
